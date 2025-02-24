@@ -3,15 +3,15 @@ package spammer
 import (
 	"context"
 	"fmt"
-	"math/big"
-	"time"
-
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/rpc"
+	"math/big"
+	"time"
 )
 
 var (
@@ -154,33 +154,57 @@ func Airdrop(config *Config, value *big.Int) error {
 		return err
 	}
 	for _, addr := range config.keys {
-		nonce, err := backend.PendingNonceAt(context.Background(), sender)
-		if err != nil {
-			fmt.Printf("error getting pending nonce; could not airdrop: %v\n", err)
-			return err
+		for {
+			nonce, err := backend.PendingNonceAt(context.Background(), sender)
+			if err != nil {
+				fmt.Printf("error getting pending nonce; could not airdrop: %v\n", err)
+				return err
+			}
+			to := crypto.PubkeyToAddress(addr.PublicKey)
+
+			gasTipCap, err := backend.SuggestGasTipCap(context.Background())
+			if err != nil {
+				fmt.Println("estimateDynamicGas SuggestGasTipCap failure", "error", err)
+				return err
+			}
+			header, err := backend.HeaderByNumber(context.Background(), big.NewInt(rpc.PendingBlockNumber.Int64()))
+			if err != nil {
+				fmt.Println("estimateDynamicGas HeaderByNumber failure", "error", err)
+				return err
+			}
+			var baseFee uint64
+			if header.BaseFee != nil {
+				baseFee = header.BaseFee.Uint64()
+			}
+			gasFeeCap := new(big.Int).Mul(new(big.Int).SetUint64(baseFee), big.NewInt(2))
+			gasFeeCap = new(big.Int).Add(gasFeeCap, gasTipCap)
+			gasLimit, err := backend.EstimateGas(context.Background(), ethereum.CallMsg{
+				From:      sender,
+				To:        &to,
+				GasTipCap: gasTipCap,
+				GasFeeCap: gasFeeCap,
+				Value:     value,
+			})
+
+			tx2 := types.NewTx(&types.DynamicFeeTx{
+				Nonce:     nonce,
+				To:        &to,
+				Gas:       gasLimit * 3,
+				ChainID:   chainid,
+				Value:     value,
+				GasTipCap: gasTipCap,
+				GasFeeCap: gasFeeCap,
+			})
+			signedTx, _ := types.SignTx(tx2, types.LatestSignerForChainID(chainid), config.faucet)
+			if err := backend.SendTransaction(context.Background(), signedTx); err != nil {
+				fmt.Printf("error sending transaction; could not airdrop: %v\n", err)
+				//return err
+				continue
+			}
+			tx = signedTx
+			time.Sleep(10 * time.Millisecond)
+			break
 		}
-		to := crypto.PubkeyToAddress(addr.PublicKey)
-		gp, _ := backend.SuggestGasPrice(context.Background())
-		gas, err := backend.EstimateGas(context.Background(), ethereum.CallMsg{
-			From:     crypto.PubkeyToAddress(config.faucet.PublicKey),
-			To:       &to,
-			Gas:      30_000_000,
-			GasPrice: gp,
-			Value:    value,
-		})
-		if err != nil {
-			fmt.Printf("error estimating gas: %v\n", err)
-			fmt.Printf("estimating: from %v, to %v, gas %v, gasprice %v value %v", crypto.PubkeyToAddress(config.faucet.PublicKey), &to, 30_000_000, gp, value)
-			return err
-		}
-		tx2 := types.NewTransaction(nonce, to, value, gas, gp, nil)
-		signedTx, _ := types.SignTx(tx2, types.LatestSignerForChainID(chainid), config.faucet)
-		if err := backend.SendTransaction(context.Background(), signedTx); err != nil {
-			fmt.Printf("error sending transaction; could not airdrop: %v\n", err)
-			return err
-		}
-		tx = signedTx
-		time.Sleep(10 * time.Millisecond)
 	}
 	// Wait for the last transaction to be mined
 	if _, err := bind.WaitMined(context.Background(), backend, tx); err != nil {

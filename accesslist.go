@@ -14,10 +14,10 @@ import (
 // CreateAccessList creates a new access list for a transaction via the eth_createAccessList.
 func CreateAccessList(client *rpc.Client, tx *types.Transaction, from common.Address) (*types.AccessList, error) {
 	msg := ethereum.CallMsg{
-		From:       from,
-		To:         tx.To(),
-		Gas:        tx.Gas(),
-		GasPrice:   tx.GasPrice(),
+		From: from,
+		To:   tx.To(),
+		Gas:  tx.Gas(),
+		//GasPrice: tx.GasPrice(),
 		GasFeeCap:  tx.GasFeeCap(),
 		GasTipCap:  tx.GasTipCap(),
 		Value:      tx.Value(),

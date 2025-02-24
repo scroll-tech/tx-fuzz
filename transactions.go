@@ -3,7 +3,6 @@ package txfuzz
 import (
 	"context"
 	"crypto/sha256"
-	"fmt"
 	"math/big"
 	"math/rand"
 
@@ -73,19 +72,16 @@ func initDefaultTxConf(rpc *rpc.Client, f *filler.Filler, sender common.Address,
 				chainID = big.NewInt(1)
 			}
 		}
+
 		// Try to estimate gas
 		gas, err := client.EstimateGas(context.Background(), ethereum.CallMsg{
-			From:      sender,
-			To:        &to,
-			Gas:       30_000_000,
-			GasPrice:  gasPrice,
-			GasFeeCap: gasPrice,
-			GasTipCap: gasPrice,
-			Value:     value,
-			Data:      code,
+			From:     sender,
+			To:       &to,
+			GasPrice: gasPrice,
+			Value:    value,
+			Data:     code,
 		})
 		if err == nil {
-			fmt.Printf("Error estimating gas: %v", err)
 			gasCost = gas
 		}
 	}
@@ -111,6 +107,7 @@ func RandomValidTx(rpc *rpc.Client, f *filler.Filler, sender common.Address, non
 	conf := initDefaultTxConf(rpc, f, sender, nonce, gasPrice, chainID)
 	var index int
 	if al {
+		conf.gasLimit = conf.gasLimit * 3
 		index = rand.Intn(len(alStrategies))
 		return alStrategies[index](conf)
 	} else {

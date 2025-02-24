@@ -16,7 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 )
 
-const TX_TIMEOUT = 5 * time.Minute
+const TX_TIMEOUT = 50 * time.Minute
 
 func SendBasicTransactions(config *Config, key *ecdsa.PrivateKey, f *filler.Filler) error {
 	backend := ethclient.NewClient(config.backend)
@@ -26,29 +26,33 @@ func SendBasicTransactions(config *Config, key *ecdsa.PrivateKey, f *filler.Fill
 		log.Warn("Could not get chainID, using default")
 		chainID = big.NewInt(0x01000666)
 	}
+	allCount := config.N
 
 	var lastTx *types.Transaction
-	for i := uint64(0); i < config.N; i++ {
+	for i := uint64(0); i < allCount; i++ {
 		nonce, err := backend.NonceAt(context.Background(), sender, big.NewInt(-1))
 		if err != nil {
-			return err
+			time.Sleep(10 * time.Millisecond)
+			continue
 		}
 		tx, err := txfuzz.RandomValidTx(config.backend, f, sender, nonce, nil, nil, config.accessList)
 		if err != nil {
-			log.Warn("Could not create valid tx: %v", nonce)
-			return err
+			time.Sleep(10 * time.Millisecond)
+			continue
 		}
 		signedTx, err := types.SignTx(tx, types.NewCancunSigner(chainID), key)
 		if err != nil {
-			return err
+			time.Sleep(10 * time.Millisecond)
+			continue
 		}
 		if err := backend.SendTransaction(context.Background(), signedTx); err != nil {
-			log.Warn("Could not submit transaction: %v", err)
-			return err
+			time.Sleep(10 * time.Millisecond)
+			continue
 		}
 		lastTx = signedTx
 		time.Sleep(10 * time.Millisecond)
 	}
+	fmt.Println("send over")
 	if lastTx != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), TX_TIMEOUT)
 		defer cancel()
@@ -56,5 +60,6 @@ func SendBasicTransactions(config *Config, key *ecdsa.PrivateKey, f *filler.Fill
 			fmt.Printf("Waiting for transactions to be mined failed: %v\n", err.Error())
 		}
 	}
+	fmt.Println("Finished sending basic transactions")
 	return nil
 }

@@ -80,12 +80,13 @@ func NewConfigFromContext(c *cli.Context) (*Config, error) {
 	// Setup Keys
 	var keys []*ecdsa.PrivateKey
 	nKeys := c.Int(flags.CountFlag.Name)
-	if nKeys == 0 || nKeys > len(staticKeys) {
-		fmt.Printf("Sanitizing count flag from %v to %v\n", nKeys, len(staticKeys))
-		nKeys = len(staticKeys)
-	}
+	_, privateKeys := CreateAddresses(nKeys)
+	//if nKeys == 0 || nKeys > len(privateKeys) {
+	//	fmt.Printf("Sanitizing count flag from %v to %v\n", nKeys, len(privateKeys))
+	//	nKeys = len(privateKeys)
+	//}
 	for i := 0; i < nKeys; i++ {
-		keys = append(keys, crypto.ToECDSAUnsafe(common.FromHex(staticKeys[i])))
+		keys = append(keys, crypto.ToECDSAUnsafe(common.FromHex(privateKeys[i])))
 	}
 
 	// Setup gasLimit

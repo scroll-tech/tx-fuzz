@@ -107,7 +107,7 @@ func spam(config *spammer.Config, spamFn spammer.Spam, airdropValue *big.Int) er
 		}
 		fmt.Println("Spamming")
 		spammer.SpamTransactions(config, spamFn)
-		time.Sleep(time.Duration(config.SlotTime) * time.Second)
+		time.Sleep(time.Duration(config.SlotTime) * time.Millisecond)
 	}
 }
 
