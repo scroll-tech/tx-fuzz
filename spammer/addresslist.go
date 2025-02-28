@@ -2,7 +2,6 @@ package spammer
 
 import (
 	"context"
-	"fmt"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -10,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
+	"log"
 	"math/big"
 	"time"
 )
@@ -146,30 +146,30 @@ func CreateAddresses(N int) ([]string, []string) {
 func Airdrop(config *Config, value *big.Int) error {
 	backend := ethclient.NewClient(config.backend)
 	sender := crypto.PubkeyToAddress(config.faucet.PublicKey)
-	fmt.Printf("Airdrop faucet is at %x\n", sender)
+	log.Printf("Airdrop faucet is at %x\n", sender)
 	var tx *types.Transaction
 	chainid, err := backend.ChainID(context.Background())
 	if err != nil {
-		fmt.Printf("error getting chain ID; could not airdrop: %v\n", err)
+		log.Printf("error getting chain ID; could not airdrop: %v\n", err)
 		return err
 	}
 	for _, addr := range config.keys {
 		for {
 			nonce, err := backend.PendingNonceAt(context.Background(), sender)
 			if err != nil {
-				fmt.Printf("error getting pending nonce; could not airdrop: %v\n", err)
+				log.Printf("error getting pending nonce; could not airdrop: %v\n", err)
 				return err
 			}
 			to := crypto.PubkeyToAddress(addr.PublicKey)
 
 			gasTipCap, err := backend.SuggestGasTipCap(context.Background())
 			if err != nil {
-				fmt.Println("estimateDynamicGas SuggestGasTipCap failure", "error", err)
+				log.Println("estimateDynamicGas SuggestGasTipCap failure", "error", err)
 				return err
 			}
 			header, err := backend.HeaderByNumber(context.Background(), big.NewInt(rpc.PendingBlockNumber.Int64()))
 			if err != nil {
-				fmt.Println("estimateDynamicGas HeaderByNumber failure", "error", err)
+				log.Println("estimateDynamicGas HeaderByNumber failure", "error", err)
 				return err
 			}
 			var baseFee uint64
@@ -197,7 +197,7 @@ func Airdrop(config *Config, value *big.Int) error {
 			})
 			signedTx, _ := types.SignTx(tx2, types.LatestSignerForChainID(chainid), config.faucet)
 			if err := backend.SendTransaction(context.Background(), signedTx); err != nil {
-				fmt.Printf("error sending transaction; could not airdrop: %v\n", err)
+				log.Printf("error sending transaction; could not airdrop: %v\n", err)
 				//return err
 				continue
 			}

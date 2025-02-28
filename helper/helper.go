@@ -5,6 +5,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/rand"
 	"fmt"
+	"log"
 	"math/big"
 
 	"github.com/MariusVanDerWijden/FuzzyVM/filler"
@@ -34,7 +35,7 @@ func Exec(addr common.Address, data []byte, blobs bool) *types.Transaction {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Nonce: %v\n", nonce)
+	log.Printf("Nonce: %v\n", nonce)
 	gp, err := backend.SuggestGasPrice(context.Background())
 	if err != nil {
 		panic(err)
@@ -88,7 +89,7 @@ func ExecAuth(addr common.Address, data []byte, authList *types.AuthorizationLis
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Nonce: %v\n", nonce)
+	log.Printf("Nonce: %v\n", nonce)
 	gp, err := backend.SuggestGasPrice(context.Background())
 	if err != nil {
 		panic(err)
@@ -175,7 +176,7 @@ func Deploy(bytecode string) (common.Address, error) {
 	if err != nil {
 		return common.Address{}, err
 	}
-	fmt.Printf("Nonce: %v\n", nonce)
+	log.Printf("Nonce: %v\n", nonce)
 	gp, _ := backend.SuggestGasPrice(context.Background())
 	tx := types.NewContractCreation(nonce, common.Big0, 500000, gp.Mul(gp, common.Big2), common.Hex2Bytes(bytecode))
 	signedTx, _ := types.SignTx(tx, types.NewCancunSigner(chainid), sk)
@@ -197,7 +198,7 @@ func Execute(data []byte, gaslimit uint64) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Nonce: %v\n", nonce)
+	log.Printf("Nonce: %v\n", nonce)
 	gp, _ := backend.SuggestGasPrice(context.Background())
 	tx := types.NewContractCreation(nonce, common.Big1, gaslimit, gp.Mul(gp, common.Big2), data)
 	signedTx, _ := types.SignTx(tx, types.NewLondonSigner(chainid), sk)

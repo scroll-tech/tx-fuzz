@@ -6,6 +6,7 @@ import (
 	crand "crypto/rand"
 	"encoding/binary"
 	"fmt"
+	"log"
 	"math/rand"
 	"os"
 
@@ -82,7 +83,7 @@ func NewConfigFromContext(c *cli.Context) (*Config, error) {
 	nKeys := c.Int(flags.CountFlag.Name)
 	_, privateKeys := CreateAddresses(nKeys)
 	//if nKeys == 0 || nKeys > len(privateKeys) {
-	//	fmt.Printf("Sanitizing count flag from %v to %v\n", nKeys, len(privateKeys))
+	//	log.Printf("Sanitizing count flag from %v to %v\n", nKeys, len(privateKeys))
 	//	nKeys = len(privateKeys)
 	//}
 	for i := 0; i < nKeys; i++ {
@@ -109,7 +110,7 @@ func NewConfigFromContext(c *cli.Context) (*Config, error) {
 		rnd := make([]byte, 8)
 		crand.Read(rnd)
 		seed = int64(binary.BigEndian.Uint64(rnd))
-		fmt.Printf("No seed provided, creating one: %x\n", seed)
+		log.Printf("No seed provided, creating one: %x\n", seed)
 	}
 
 	// Setup Mutator

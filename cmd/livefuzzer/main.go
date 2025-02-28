@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math/big"
 	"os"
 	"time"
@@ -98,14 +99,14 @@ func runAirdrop(c *cli.Context) error {
 
 func spam(config *spammer.Config, spamFn spammer.Spam, airdropValue *big.Int) error {
 	// Make sure the accounts are unstuck before sending any transactions
-	fmt.Println("Unstucking")
+	log.Println("Unstucking")
 	spammer.Unstuck(config)
 	for {
-		fmt.Println("Airdropping")
+		log.Println("Airdropping")
 		if err := spammer.Airdrop(config, airdropValue); err != nil {
 			return err
 		}
-		fmt.Println("Spamming")
+		log.Println("Spamming")
 		spammer.SpamTransactions(config, spamFn)
 		time.Sleep(time.Duration(config.SlotTime) * time.Millisecond)
 	}

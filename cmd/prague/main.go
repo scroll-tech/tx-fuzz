@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"fmt"
+	"log"
 	"math/big"
 
 	txfuzz "github.com/MariusVanDerWijden/tx-fuzz"
@@ -18,17 +19,17 @@ import (
 )
 
 func main() {
-	fmt.Println("Touching contracts")
+	log.Println("Touching contracts")
 	testTouchContracts()
-	fmt.Println("2537")
+	log.Println("2537")
 	test2537()
-	fmt.Println("2537")
+	log.Println("2537")
 	test2537Long()
-	fmt.Println("3074")
+	log.Println("3074")
 	test3074()
-	fmt.Println("7702")
+	log.Println("7702")
 	test7702()
-	fmt.Println("2935")
+	log.Println("2935")
 	test2935()
 	test7002()
 	test7251()
@@ -63,7 +64,7 @@ func test3074() {
 	helper.Execute([]byte{0x5f, 0x5f, 0x5f, 0x5f, 0x5f, 0x5f, 0x5f, 0xf7, 0x80, 0x55}, 200000)
 	helper.Execute([]byte{0x5f, 0x5f, 0x5f, 0x5f, 0x5f, 0x5f, 0x5a, 0xf7, 0x80, 0x55}, 200000)
 	helper.Execute([]byte{0x64, 0xff, 0xff, 0xff, 0xff, 0x5f, 0x64, 0xff, 0xff, 0xff, 0xff, 0x5f, 0x5f, 0x5f, 0x5a, 0xf7, 0x80, 0x55}, 200000)
-	fmt.Println("Execution tests")
+	log.Println("Execution tests")
 	vectors := [][]byte{
 		common.FromHex("000f6617e03f2800b69a0b018d3062535ec761c6648a4c73be71f97885e28505f67f0d4ee582093960a99757587fe74e6ec173477c4ca05310e25158152ff99d4f0000000000000000000000000000000000000000000000000000000000000001"),
 		common.FromHex("0x6001615dc06000f615600155"),
@@ -108,7 +109,7 @@ func test2537() {
 
 // test7002 creates withdrawal requests in the EIP-7002 queue.
 func test7002() {
-	fmt.Println("test7002")
+	log.Println("test7002")
 
 	cl, _ := helper.GetRealBackend()
 	backend := ethclient.NewClient(cl)
@@ -137,7 +138,7 @@ func test7002() {
 
 // test7251 creates consolidation requests in the EIP-7251 queue.
 func test7251() {
-	fmt.Println("test7251")
+	log.Println("test7251")
 	contract := common.HexToAddress("0x01aBEa29659e5e97C95107F20bb753cD3e09bBBb")
 	inputs := [][]byte{
 		// input data is source_blskey(48) || target_blskey(48)
@@ -158,7 +159,7 @@ func test2537Long() {
 }
 
 func testLongBLS(prec int, input []byte) {
-	fmt.Printf("Testing 0x%02x\n", prec)
+	log.Printf("Testing 0x%02x\n", prec)
 	addr, err := deployPrecompileCaller(fmt.Sprintf("%02x", prec))
 	if err != nil {
 		panic(err)
@@ -216,7 +217,7 @@ func makeTxWithValue(addr common.Address, value *big.Int, data []byte) *types.Tr
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Nonce: %v\n", nonce)
+	log.Printf("Nonce: %v\n", nonce)
 	gp, err := backend.SuggestGasPrice(ctx)
 	if err != nil {
 		panic(err)

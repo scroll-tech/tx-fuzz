@@ -3,7 +3,7 @@ package spammer
 import (
 	"context"
 	"crypto/ecdsa"
-	"fmt"
+	"log"
 	"math/big"
 	"time"
 
@@ -13,7 +13,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/ethereum/go-ethereum/log"
 )
 
 func SendBlobTransactions(config *Config, key *ecdsa.PrivateKey, f *filler.Filler) error {
@@ -21,7 +20,7 @@ func SendBlobTransactions(config *Config, key *ecdsa.PrivateKey, f *filler.Fille
 	sender := crypto.PubkeyToAddress(key.PublicKey)
 	chainID, err := backend.ChainID(context.Background())
 	if err != nil {
-		log.Warn("Could not get chainID, using default")
+		log.Println("Could not get chainID, using default")
 		chainID = big.NewInt(0x01000666)
 	}
 
@@ -33,7 +32,7 @@ func SendBlobTransactions(config *Config, key *ecdsa.PrivateKey, f *filler.Fille
 		}
 		tx, err := txfuzz.RandomBlobTx(config.backend, f, sender, nonce, nil, nil, config.accessList)
 		if err != nil {
-			log.Warn("Could not create valid tx: %v", nonce)
+			log.Printf("Could not create valid tx: %v", nonce)
 			return err
 		}
 		signedTx, err := types.SignTx(tx, types.NewCancunSigner(chainID), key)
@@ -41,7 +40,7 @@ func SendBlobTransactions(config *Config, key *ecdsa.PrivateKey, f *filler.Fille
 			return err
 		}
 		if err := backend.SendTransaction(context.Background(), signedTx); err != nil {
-			log.Warn("Could not submit transaction: %v", err)
+			log.Printf("Could not submit transaction: %v", err)
 			return err
 		}
 		lastTx = signedTx
@@ -52,7 +51,7 @@ func SendBlobTransactions(config *Config, key *ecdsa.PrivateKey, f *filler.Fille
 		ctx, cancel := context.WithTimeout(context.Background(), TX_TIMEOUT)
 		defer cancel()
 		if _, err := bind.WaitMined(ctx, backend, lastTx); err != nil {
-			fmt.Printf("Waiting for transactions to be mined failed: %v\n", err.Error())
+			log.Printf("Waiting for transactions to be mined failed: %v\n", err.Error())
 		}
 	}
 	return nil

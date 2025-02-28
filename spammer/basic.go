@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
+	"log"
 	"math/big"
 	"time"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/ethereum/go-ethereum/log"
 )
 
 const TX_TIMEOUT = 50 * time.Minute
@@ -23,7 +23,7 @@ func SendBasicTransactions(config *Config, key *ecdsa.PrivateKey, f *filler.Fill
 	sender := crypto.PubkeyToAddress(key.PublicKey)
 	chainID, err := backend.ChainID(context.Background())
 	if err != nil {
-		log.Warn("Could not get chainID, using default")
+		log.Println("Could not get chainID, using default")
 		chainID = big.NewInt(0x01000666)
 	}
 	allCount := config.N
@@ -52,7 +52,7 @@ func SendBasicTransactions(config *Config, key *ecdsa.PrivateKey, f *filler.Fill
 		lastTx = signedTx
 		time.Sleep(10 * time.Millisecond)
 	}
-	fmt.Println("send over")
+	log.Println("send over")
 	if lastTx != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), TX_TIMEOUT)
 		defer cancel()
@@ -60,6 +60,6 @@ func SendBasicTransactions(config *Config, key *ecdsa.PrivateKey, f *filler.Fill
 			fmt.Printf("Waiting for transactions to be mined failed: %v\n", err.Error())
 		}
 	}
-	fmt.Println("Finished sending basic transactions")
+	log.Println("Finished sending basic transactions")
 	return nil
 }

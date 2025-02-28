@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/binary"
-	"fmt"
+	"log"
 
 	"github.com/MariusVanDerWijden/tx-fuzz/helper"
 )
@@ -37,7 +37,7 @@ func main() {
 	// loop push0
 	// JUMPDEST, PUSH0, JUMP
 	helper.Execute([]byte{0x58, 0x5f, 0x56}, 50000)
-	fmt.Println("Limit&MeterInitcode")
+	log.Println("Limit&MeterInitcode")
 	// limit & meter initcode
 	sizes := []int{
 		maxInitCodeSize - 2,

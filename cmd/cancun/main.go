@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/binary"
-	"fmt"
+	"log"
 	"time"
 
 	"github.com/MariusVanDerWijden/tx-fuzz/helper"
@@ -14,17 +14,17 @@ import (
 )
 
 func main() {
-	fmt.Println("4788")
+	log.Println("4788")
 	test4788()
-	fmt.Println("1153")
+	log.Println("1153")
 	test1153()
-	fmt.Println("7516")
+	log.Println("7516")
 	test7516()
-	fmt.Println("5656")
+	log.Println("5656")
 	test5656()
-	fmt.Println("4844_prec")
+	log.Println("4844_prec")
 	test4844_precompile()
-	fmt.Println("4844")
+	log.Println("4844")
 	test4844()
 }
 
