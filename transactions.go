@@ -77,7 +77,7 @@ func initDefaultTxConf(rpc *rpc.Client, f *filler.Filler, sender common.Address,
 		gas, err := client.EstimateGas(context.Background(), ethereum.CallMsg{
 			From:     sender,
 			To:       &to,
-			GasPrice: gasPrice,
+			GasPrice: new(big.Int).Mul(gasPrice, big.NewInt(3)),
 			Value:    value,
 			Data:     code,
 		})
