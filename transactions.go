@@ -64,6 +64,7 @@ func initDefaultTxConf(rpc *rpc.Client, f *filler.Filler, sender common.Address,
 				log.Warn("Error suggesting gas price: %v", err)
 				gasPrice = big.NewInt(1)
 			}
+			gasPrice = new(big.Int).Add(new(big.Int).Mul(gasPrice, big.NewInt(3)), big.NewInt(1000000000))
 		}
 		if chainID == nil {
 			chainID, err = client.ChainID(context.Background())
@@ -77,7 +78,7 @@ func initDefaultTxConf(rpc *rpc.Client, f *filler.Filler, sender common.Address,
 		gas, err := client.EstimateGas(context.Background(), ethereum.CallMsg{
 			From:     sender,
 			To:       &to,
-			GasPrice: new(big.Int).Add(new(big.Int).Mul(gasPrice, big.NewInt(3)), big.NewInt(1000000000)),
+			GasPrice: gasPrice,
 			Value:    value,
 			Data:     code,
 		})
