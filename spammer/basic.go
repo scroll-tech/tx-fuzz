@@ -46,6 +46,7 @@ func SendBasicTransactions(config *Config, key *ecdsa.PrivateKey, f *filler.Fill
 			continue
 		}
 		if err := backend.SendTransaction(context.Background(), signedTx); err != nil {
+			log.Println("Could not send transaction", err)
 			time.Sleep(10 * time.Millisecond)
 			continue
 		}
